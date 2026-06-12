@@ -58,9 +58,8 @@ To run them from anywhere:
 
 ```bash
 mkdir -p ~/.local/bin
-cp scripts/link-project.sh ~/.local/bin/link-project
-cp scripts/new-project.sh ~/.local/bin/new-project
-chmod +x ~/.local/bin/link-project ~/.local/bin/new-project
+ln -s "$PWD/scripts/link-project.sh" ~/.local/bin/link-project
+ln -s "$PWD/scripts/new-project.sh" ~/.local/bin/new-project
 ```
 
 Then add to your shell profile if not already:
