@@ -54,10 +54,19 @@ From inside this repo:
 mkdir -p ~/.local/bin
 ln -s "$PWD/scripts/new-project.sh"    ~/.local/bin/new-project
 ln -s "$PWD/scripts/link-project.sh"   ~/.local/bin/link-project
-ln -s "$PWD/scripts/open-dashboard.sh" ~/.local/bin/open-dashboard
+ln -s "$PWD/scripts/open-dashboard.sh"  ~/.local/bin/open-dashboard
+ln -s "$PWD/scripts/update-projects.sh" ~/.local/bin/update-projects
 ```
 
-### 4. Copy vault templates
+### 4. Install the git hook
+
+This makes `git pull` automatically propagate dashboard changes to all your existing projects:
+
+```bash
+ln -s "$PWD/hooks/post-merge" .git/hooks/post-merge
+```
+
+### 5. Copy vault templates
 
 Copy `templates/vault/` into your Obsidian vault root. The `Dashboard/` folder holds the dashboard spec and renderer; `Projects/_example-project/` is the per-project template.
 
@@ -74,19 +83,25 @@ new-project acme-website "Acme Corp"
 ```
 
 This creates:
-1. `vault/Projects/flowforest/` with all template files + a dashboard HTML
-2. `dev/flowforest/` with `git init`
-3. `dev/flowforest/docs/` → symlink to the vault folder
-4. `docs/` added to `.gitignore`
-5. `CLAUDE.md` in the repo root
+1. `vault/Projects/flowforest/` with all template files + dashboard HTML
+2. `Open Dashboard.command` alongside the HTML — double-click in Finder to launch
+3. `dev/flowforest/` with `git init`
+4. `dev/flowforest/docs/` → symlink to the vault folder
+5. `docs/` added to `.gitignore`
+6. `CLAUDE.md` in the repo root
 
 ### Open the live dashboard
 
+Two ways to launch — pick whichever fits the moment:
+
+**From Finder:** double-click `Open Dashboard.command` in the vault project folder. Terminal opens, everything starts, close the browser tab to stop.
+
+**From the terminal:**
 ```bash
 open-dashboard flowforest
 ```
 
-This starts a local server and file watcher, opens the dashboard in your browser, and shuts everything down 15 seconds after you close the tab. While it's running, any save to a markdown file in the project folder syncs to the dashboard automatically.
+Either way: a local server and file watcher start, the dashboard opens in your browser, and everything shuts down 15 seconds after you close the tab. Any save to a markdown file syncs to the dashboard automatically.
 
 ### Link an existing project
 
@@ -207,6 +222,24 @@ Read these files at the start of every session:
 | `research.md` | vault + `docs/` | Free-form notes. Not synced to dashboard. |
 | `*Dashboard.html` | vault project folder | Auto-generated. Open via `open-dashboard`, not by hand. |
 | `CLAUDE.md` | repo root | AI agent brief. Not in vault, not synced to dashboard. |
+
+---
+
+## Keeping projects up to date
+
+When you pull changes to this repo (new dashboard features, bug fixes), run:
+
+```bash
+update-projects
+```
+
+This re-copies the dashboard HTML renderer to every existing project and re-syncs their JSON from markdown. Your markdown files are never touched. If you installed the git hook in setup step 4, this runs automatically after every `git pull`.
+
+To preview what would change without touching anything:
+
+```bash
+update-projects --dry-run
+```
 
 ---
 

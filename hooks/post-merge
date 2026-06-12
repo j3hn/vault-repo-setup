@@ -1,0 +1,17 @@
+#!/bin/bash
+# Runs after every `git pull` on vault-repo-setup.
+# Propagates dashboard template changes to all existing projects.
+
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+
+# Only run if dashboard-related files actually changed in this merge
+CHANGED=$(git diff-tree -r --name-only --no-commit-id ORIG_HEAD HEAD 2>/dev/null)
+RELEVANT=$(echo "$CHANGED" | grep -E "templates/vault/Dashboard/|scripts/sync-dashboard|scripts/ping-server|scripts/open-dashboard" | head -1)
+
+if [ -z "$RELEVANT" ]; then
+    exit 0
+fi
+
+echo ""
+echo "🔄  Dashboard files changed — updating projects..."
+"$REPO_DIR/scripts/update-projects.sh"

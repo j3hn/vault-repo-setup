@@ -59,6 +59,16 @@ else
     python3 "$SCRIPT_DIR/sync-dashboard.py" "$VAULT_PROJECT" --quiet 2>/dev/null \
       && echo "✅  Dashboard created: $PROJECT Dashboard.html" \
       || echo "⚠️  Dashboard created (sync skipped — run open-dashboard to activate)"
+
+    # Create .command launcher for Finder double-click
+    COMMAND_FILE="$VAULT_PROJECT/Open Dashboard.command"
+    cat > "$COMMAND_FILE" <<CMDEOF
+#!/bin/zsh
+source "\$HOME/.zshrc" 2>/dev/null || true
+open-dashboard "$PROJECT"
+CMDEOF
+    chmod +x "$COMMAND_FILE"
+    echo "✅  Launcher created: Open Dashboard.command"
   fi
 fi
 
