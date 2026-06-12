@@ -99,15 +99,15 @@ else
   echo "✅  Created .gitignore with $DOCS_FOLDER/"
 fi
 
-# Copy CONTEXT.md template into repo root if not present
-CONTEXT_FILE="$REPO_PATH/CONTEXT.md"
+# Copy CLAUDE.md template into repo root if not present
+CLAUDE_FILE="$REPO_PATH/CLAUDE.md"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CONTEXT_TEMPLATE="$SCRIPT_DIR/../templates/repo/CONTEXT.md"
-if [ ! -f "$CONTEXT_FILE" ] && [ -f "$CONTEXT_TEMPLATE" ]; then
-  cp "$CONTEXT_TEMPLATE" "$CONTEXT_FILE"
-  sed -i.bak "s/PROJECT_NAME/$PROJECT/g" "$CONTEXT_FILE"
-  rm -f "$CONTEXT_FILE.bak"
-  echo "✅  Created CONTEXT.md in repo"
+CLAUDE_TEMPLATE="$SCRIPT_DIR/../templates/repo/CLAUDE.md"
+if [ ! -f "$CLAUDE_FILE" ] && [ -f "$CLAUDE_TEMPLATE" ]; then
+  cp "$CLAUDE_TEMPLATE" "$CLAUDE_FILE"
+  sed -i.bak "s/PROJECT_NAME/$PROJECT/g" "$CLAUDE_FILE"
+  rm -f "$CLAUDE_FILE.bak"
+  echo "✅  Created CLAUDE.md in repo"
 fi
 
 echo ""
@@ -115,6 +115,6 @@ echo "🎉  Done! Project $PROJECT is linked."
 echo ""
 echo "   Vault notes:  $VAULT_PROJECT"
 echo "   Repo docs/:   $LINK_PATH  (symlink)"
-echo "   CONTEXT.md:   $CONTEXT_FILE"
+echo "   CLAUDE.md:   $CLAUDE_FILE"
 echo ""
-echo "   Next: update CONTEXT.md with your project brief."
+echo "   Next: update CLAUDE.md with your project brief."

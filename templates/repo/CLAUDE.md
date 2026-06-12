@@ -1,6 +1,6 @@
-# PROJECT_NAME — Context
+# PROJECT_NAME
 
-> This file is for AI agents (Claude Code, Cursor, etc.).
+> Loaded automatically by Claude Code at the start of every session.
 > Keep it concise and current. Full notes are in docs/
 
 ---

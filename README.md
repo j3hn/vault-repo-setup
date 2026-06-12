@@ -17,7 +17,7 @@ vault/Projects/flowforest/
 
 dev/flowforest/
         src/
-        CONTEXT.md           ← AI agent brief (in repo)
+        CLAUDE.md           ← AI agent brief (in repo)
         docs/  ──────────────symlink → vault/Projects/flowforest/
 ```
 
@@ -78,7 +78,7 @@ This creates:
 2. `dev/flowforest/` with `git init`
 3. `dev/flowforest/docs/` → symlink to the vault folder
 4. `docs/` added to `.gitignore`
-5. `CONTEXT.md` in the repo root
+5. `CLAUDE.md` in the repo root
 
 ### Open the live dashboard
 
@@ -189,7 +189,7 @@ Add a `CLAUDE.md` at the repo root:
 
 ```markdown
 Read these files at the start of every session:
-- CONTEXT.md — project brief and current sprint
+- CLAUDE.md — project brief and current sprint
 - docs/progress.md — running log of what's been done
 - docs/tasks.md — open tasks
 ```
@@ -206,7 +206,7 @@ Read these files at the start of every session:
 | `progress.md` | vault + `docs/` | Session log → dashboard sessions panel. |
 | `research.md` | vault + `docs/` | Free-form notes. Not synced to dashboard. |
 | `*Dashboard.html` | vault project folder | Auto-generated. Open via `open-dashboard`, not by hand. |
-| `CONTEXT.md` | repo root | AI agent brief. Not in vault, not synced to dashboard. |
+| `CLAUDE.md` | repo root | AI agent brief. Not in vault, not synced to dashboard. |
 
 ---
 
