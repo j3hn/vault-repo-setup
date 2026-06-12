@@ -188,13 +188,27 @@ Format: `### YYYY-MM-DD — Title [stream-id]` followed by freeform body. The `[
 ### `progress.md` — session log
 
 ```markdown
-### 2026-06-12 — First build session
+### 2026-06-12 — First build session @claude-code @model:sonnet @effort:high
 - Set up Electron boilerplate
 - Wired Web Audio context to main process
 - Confirmed audio output on macOS and Windows
+
+### 2026-06-11 — Spec review @zed @model:opus @effort:max
+- Read all ADRs
+- Flagged open questions on sync design
 ```
 
 Format: `### YYYY-MM-DD — Session title` followed by bullet points. Each entry becomes a session card in the dashboard. Today's entry is marked active.
+
+The optional `@` tags record where and how the session was run — all are optional, use any combination:
+
+| Tag | Purpose | Examples |
+|-----|---------|---------|
+| `@tool` | environment the session ran in | `@claude-code` `@claude-desktop` `@zed` `@warp` `@cursor` `@terminal` |
+| `@model:name` | model used | `@model:sonnet` `@model:opus` `@model:haiku` |
+| `@effort:level` | effort / thinking level | `@effort:max` `@effort:high` `@effort:med` `@effort:low` |
+
+Tool names are auto-formatted on the dashboard (`@claude-code` → "Claude Code", `@zed` → "Zed"). High and max effort get a distinct colour on the session card.
 
 ---
 
