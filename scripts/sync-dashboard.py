@@ -188,6 +188,10 @@ def main():
         'decisions': decisions,
         'sessions':  sessions,
         'documents': fm.get('documents') or [],
+        'paths': {
+            'vault': project_dir,
+            'repo':  os.path.expanduser(fm.get('repo') or ''),
+        },
         'protocol': [
             'Edit the markdown files in this folder — not the JSON in this HTML.',
             'tasks.md — checkboxes with optional tags: #stream:id  #high  #due:YYYY-MM-DD  :: note text',

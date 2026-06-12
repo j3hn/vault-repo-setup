@@ -96,6 +96,11 @@
   details.proto code{background:var(--panel2);padding:1px 6px;border-radius:5px;color:#cfe0ee;font-size:12px}
   details.proto ol{padding-left:20px}
   .empty{color:var(--faint);font-size:13px}
+  .paths{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+  .path{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 13px;flex:1 1 auto;min-width:0}
+  .path .pk{font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px}
+  .path a{color:var(--muted);font-size:12px;font-family:monospace;word-break:break-all;text-decoration:none}
+  .path a:hover{color:var(--ink)}
   footer{color:var(--faint);font-size:12px;text-align:center;margin-top:36px}
 </style>
 </head>
@@ -121,6 +126,7 @@
   <section id="sec-log"><div class="h"><h2>Activity &amp; decisions log</h2><span class="meta">most recent first</span></div><div class="timeline" id="log"></div></section>
   <section id="sec-sessions"><div class="h"><h2>Sessions</h2><span class="meta">active &middot; closed &middot; archived</span></div><div id="sessions"></div></section>
   <section id="sec-docs"><div class="h"><h2>Key documents</h2></div><div class="grid docs" id="documents"></div></section>
+  <section id="sec-paths"><div class="h"><h2>Project files</h2></div><div class="paths" id="paths"></div></section>
   <section><details class="proto"><summary>How this dashboard is maintained (session protocol)</summary><div class="pc" id="protocol"></div></details></section>
   <footer>Self-contained file &middot; edit the <code>dash-data</code> JSON block to update &middot; <span id="foot"></span></footer>
 </div>
@@ -284,6 +290,14 @@
   docs.forEach(function(d){
     var c=el('div','doc');var w=el('div');var a=el('a',null,d.label);a.href=enc(d.path);a.className='dl';w.appendChild(a);c.appendChild(w);
     if(d.note)c.appendChild(el('div','dn',d.note));$('documents').appendChild(c);
+  });
+
+  var paths=D.paths||{}; if(!paths.vault&&!paths.repo){hide('sec-paths');}
+  [['Vault notes',paths.vault],['Repo',paths.repo]].forEach(function(pair){
+    if(!pair[1]) return;
+    var c=el('div','path');c.appendChild(el('div','pk',pair[0]));
+    var a=el('a',null,pair[1]);a.href='file://'+pair[1];a.title='Open in Finder';c.appendChild(a);
+    $('paths').appendChild(c);
   });
 
   var ol=el('ol');(D.protocol||[]).forEach(function(p){ol.appendChild(el('li',null,p));});$('protocol').appendChild(ol);
