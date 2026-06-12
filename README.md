@@ -1,79 +1,71 @@
 # Vault ↔ Repo Setup
 
-Two shell scripts that wire a new project together in one command: a git repo in your dev folder, a matching notes folder in your Obsidian vault, and a `docs/` symlink that connects them. The same files are visible in Obsidian and your editor with no syncing or duplication. A `CONTEXT.md` brief lands at the repo root so an AI agent (Claude Code, Cursor, etc.) can pick up the project immediately.
-
-One-time setup to link your Obsidian vault and Dev repos so they share the same project notes — no syncing, no duplication.
+Two shell scripts that wire a new project together in one command: a git repo in your dev folder, a matching notes folder in your Obsidian vault, a `docs/` symlink that connects them, and a live HTML dashboard that reads from those notes automatically. The same files are visible in Obsidian, your editor, and the dashboard — one source of truth, no syncing, no duplication.
 
 ---
 
 ## How It Works
 
 ```
-vault/Projects/flowforest/   ← notes live here (Obsidian sees this)
-        _index.md
-        tasks.md
-        decisions.md
-        progress.md
-        research.md
+vault/Projects/flowforest/
+        _index.md            ← project meta, streams, deadlines (frontmatter)
+        tasks.md             ← tagged checkboxes
+        decisions.md         ← date-headed decision log
+        progress.md          ← session log
+        research.md          ← free-form notes
+        flowforest Dashboard.html  ← auto-generated from the files above
 
-Dev/flowforest/
+dev/flowforest/
         src/
         CONTEXT.md           ← AI agent brief (in repo)
         docs/  ──────────────symlink → vault/Projects/flowforest/
 ```
 
-- `docs/` in your repo is a symlink to your vault project folder
-- Same files, one source of truth
-- Obsidian reads/writes them, your AI agent reads/writes them
+- `docs/` in your repo is a symlink to your vault project folder — same files, everywhere
+- The dashboard HTML reads the markdown files and updates live as you edit them
 - Git ignores `docs/` so vault notes never get committed
 
 ---
 
 ## One-Time Setup
 
-### 1. Configure your paths
-
-Open `scripts/link-project.sh` and set:
+### 1. Install prerequisites
 
 ```bash
-VAULT_ROOT="$HOME/path/to/your/vault"   # your Obsidian vault folder
-DEV_ROOT="$HOME/path/to/your/Dev"       # your dev repos folder
+brew install fswatch
+pnpm add -g browser-sync
 ```
 
-Or set them as environment variables in your shell profile (`~/.zshrc` or `~/.bashrc`):
+### 2. Set your paths
+
+Add to your shell profile (`~/.zshrc` or `~/.bashrc`):
 
 ```bash
-export VAULT_ROOT="$HOME/Documents/MyVault"
-export DEV_ROOT="$HOME/Dev"
+export VAULT_ROOT="$HOME/path/to/your/vault"
+export DEV_ROOT="$HOME/path/to/your/dev"
+export PATH="$HOME/.local/bin:$PATH"
 ```
 
-### 2. Make scripts executable
+### 3. Symlink the scripts
 
-```bash
-chmod +x scripts/link-project.sh
-chmod +x scripts/new-project.sh
-```
-
-### 3. Put the scripts somewhere accessible (optional)
-
-To run them from anywhere:
+From inside this repo:
 
 ```bash
 mkdir -p ~/.local/bin
-ln -s "$PWD/scripts/link-project.sh" ~/.local/bin/link-project
-ln -s "$PWD/scripts/new-project.sh" ~/.local/bin/new-project
+ln -s "$PWD/scripts/new-project.sh"    ~/.local/bin/new-project
+ln -s "$PWD/scripts/link-project.sh"   ~/.local/bin/link-project
+ln -s "$PWD/scripts/open-dashboard.sh" ~/.local/bin/open-dashboard
 ```
 
-Then add to your shell profile if not already:
-```bash
-export PATH="$HOME/.local/bin:$PATH"
-```
+### 4. Copy vault templates
+
+Copy `templates/vault/` into your Obsidian vault root. The `Dashboard/` folder holds the dashboard spec and renderer; `Projects/_example-project/` is the per-project template.
 
 ---
 
 ## Daily Usage
 
-### Starting a brand new project
+### Start a new project
 
 ```bash
 new-project flowforest
@@ -81,65 +73,119 @@ new-project flowforest
 new-project acme-website "Acme Corp"
 ```
 
-This will:
-1. Create `vault/Projects/flowforest/` with all template files
-2. Create `Dev/flowforest/` and `git init` it
-3. Symlink `Dev/flowforest/docs/` → vault folder
-4. Add `docs/` to `.gitignore`
-5. Create `CONTEXT.md` in the repo
+This creates:
+1. `vault/Projects/flowforest/` with all template files + a dashboard HTML
+2. `dev/flowforest/` with `git init`
+3. `dev/flowforest/docs/` → symlink to the vault folder
+4. `docs/` added to `.gitignore`
+5. `CONTEXT.md` in the repo root
 
-### Linking an existing project
+### Open the live dashboard
 
-If you already have the vault folder and repo:
+```bash
+open-dashboard flowforest
+```
+
+This starts a local server and file watcher, opens the dashboard in your browser, and shuts everything down 15 seconds after you close the tab. While it's running, any save to a markdown file in the project folder syncs to the dashboard automatically.
+
+### Link an existing project
+
+If you already have both the vault folder and the repo:
 
 ```bash
 link-project flowforest
 ```
 
-### Setting up existing projects manually
-
-For each existing project you want to link:
-
-```bash
-# From inside your repo
-ln -s ~/path/to/vault/Projects/my-project ./docs
-echo "docs/" >> .gitignore
-```
-
 ---
 
-## Vault Setup
+## Dashboard — how data maps to markdown
 
-Copy the contents of `templates/vault/` into your Obsidian vault root:
+The dashboard reads four files. Edit them normally in Obsidian or any editor.
 
+### `_index.md` — project meta, streams, deadlines
+
+Structured YAML frontmatter. This is the only file you need to set up manually when starting a project.
+
+```yaml
+---
+title: flowforest
+subtitle: Generative music app
+status: active
+streams:
+  - id: build
+    name: Build
+    color: "#4cc9f0"
+    status: In progress
+    statusColor: "#3b9ae1"
+    summary: Core audio engine
+    next: Add MIDI export
+  - id: design
+    name: Design
+    color: "#f72585"
+    status: Not started
+    statusColor: "#e0a32e"
+    summary: ""
+    next: ""
+deadlines:
+  - date: 2026-08-01
+    label: Beta launch
+    severity: warn
+reference:
+  - k: Repo
+    v: ~/dev/flowforest
+  - k: Stack
+    v: Electron, Web Audio API
+documents: []
+---
 ```
-templates/vault/
-├── Dashboard/
-│   ├── DASHBOARD.md                 → spec + schema for the dashboard format
-│   └── dashboard-template.html     → copy into any project to create a dashboard
-└── Projects/_example-project/      → use as a reference
-        _index.md
-        tasks.md
-        decisions.md
-        progress.md
-        research.md
+
+### `tasks.md` — task board
+
+Plain checkboxes with optional tags. All checkboxes in the file are picked up regardless of heading.
+
+```markdown
+- [ ] Add MIDI export #stream:build #high #due:2026-07-15
+- [ ] Design onboarding flow #stream:design #med
+- [-] Fix audio glitch on M1 #stream:build #high :: blocked on upstream bug
+- [x] Set up repo #stream:build
 ```
 
-**Dashboard** is a self-contained HTML file — no server, no build step, no plugins. Copy `dashboard-template.html` into a project folder, rename it `<Project> Dashboard.html`, and edit the JSON block inside to populate it. See `DASHBOARD.md` for the full schema and session protocol.
+| Tag | Values |
+|-----|--------|
+| `#stream:id` | matches a stream `id` from `_index.md` |
+| `#high` / `#med` / `#low` / `#critical` | priority |
+| `#due:YYYY-MM-DD` | due date |
+| `:: note text` | shown as a task note |
+| `[-]` | blocked status |
+| `[x]` | done |
 
-**Rename `_example-project`** to your first real project name, then duplicate the folder for each new project (or use the scripts above to do it automatically).
+### `decisions.md` — activity log
+
+```markdown
+### 2026-06-12 — Use Web Audio API over Tone.js [build]
+**Decision:** Web Audio API directly — more control, no abstraction overhead.
+**Reason:** Tone.js added 200 KB and we don't need its sequencer.
+**Trade-offs:** More boilerplate for basic oscillator setup.
+```
+
+Format: `### YYYY-MM-DD — Title [stream-id]` followed by freeform body. The `[stream-id]` is optional. The `**Decision:**` line is pulled as the detail text in the dashboard.
+
+### `progress.md` — session log
+
+```markdown
+### 2026-06-12 — First build session
+- Set up Electron boilerplate
+- Wired Web Audio context to main process
+- Confirmed audio output on macOS and Windows
+```
+
+Format: `### YYYY-MM-DD — Session title` followed by bullet points. Each entry becomes a session card in the dashboard. Today's entry is marked active.
 
 ---
 
 ## For AI Agents (Claude Code etc.)
 
-When starting a session in a repo, point your agent to:
-
-- `CONTEXT.md` — project brief, stack, patterns, current sprint
-- `docs/progress.md` — running log of what's been done
-- `docs/tasks.md` — what's open
-
-You can tell Claude Code to always load these by adding a `CLAUDE.md` at the repo root:
+Add a `CLAUDE.md` at the repo root:
 
 ```markdown
 Read these files at the start of every session:
@@ -152,27 +198,34 @@ Read these files at the start of every session:
 
 ## File Reference
 
-| File | Where | Who uses it |
-|------|-------|-------------|
-| `_index.md` | vault + docs/ | You (Obsidian hub note) |
-| `tasks.md` | vault + docs/ | You + AI agent |
-| `decisions.md` | vault + docs/ | You + AI agent |
-| `progress.md` | vault + docs/ | You + AI agent (append log) |
-| `research.md` | vault + docs/ | You |
-| `CONTEXT.md` | repo root only | AI agent (distilled brief) |
+| File | Location | Purpose |
+|------|----------|---------|
+| `_index.md` | vault + `docs/` | Project hub. Frontmatter drives the dashboard (streams, deadlines, reference). |
+| `tasks.md` | vault + `docs/` | Task board. Tagged checkboxes → dashboard task list. |
+| `decisions.md` | vault + `docs/` | Decision log → dashboard activity timeline. |
+| `progress.md` | vault + `docs/` | Session log → dashboard sessions panel. |
+| `research.md` | vault + `docs/` | Free-form notes. Not synced to dashboard. |
+| `*Dashboard.html` | vault project folder | Auto-generated. Open via `open-dashboard`, not by hand. |
+| `CONTEXT.md` | repo root | AI agent brief. Not in vault, not synced to dashboard. |
 
 ---
 
 ## Troubleshooting
 
-**Obsidian isn't seeing the files**
-Check your vault path is correct in the script. The symlink target must be inside or accessible from your vault root.
+**Dashboard shows old data after editing**
+The watcher only runs while `open-dashboard` is active. If you edited files outside a session, run `open-dashboard` and it will sync on start.
 
-**Git is tracking docs/**
-Make sure `docs/` is in your `.gitignore`. The script adds it automatically but double-check with `git status`.
+**`open-dashboard` exits immediately**
+Check that `browser-sync` and `fswatch` are installed (`which browser-sync`, `which fswatch`).
+
+**Obsidian isn't seeing the files**
+Check your `VAULT_ROOT` path. The symlink target must be inside your vault root.
+
+**Git is tracking `docs/`**
+Make sure `docs/` is in `.gitignore`. The script adds it automatically — check with `git status`.
 
 **Symlink already exists warning**
 The link is already set up — nothing to do.
 
-**Files showing on wrong device / cloud sync issues**
-If your vault is on iCloud or Dropbox and your Dev folder isn't, symlinks can behave unexpectedly. Keep both on the same drive or storage provider if possible.
+**Cloud sync issues (iCloud / Dropbox)**
+If your vault and dev folder are on different storage providers, symlinks can behave unexpectedly. Keep both on the same drive.
