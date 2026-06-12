@@ -82,8 +82,8 @@ HTML_URL_NAME="${HTML_NAME// /%20}"
 # Open browser
 open "http://localhost:$BS_PORT/$HTML_URL_NAME?ping=$PING_PORT"
 
-# Watch markdown files → re-sync on change
-fswatch -o "$VAULT_PROJECT" | while read -r; do
+# Watch markdown files only — exclude HTML and .command to avoid feedback loop
+fswatch -o -e "\.html$" -e "\.command$" "$VAULT_PROJECT" | while read -r; do
     python3 "$SCRIPT_DIR/sync-dashboard.py" "$VAULT_PROJECT" --quiet
 done &
 FSWATCH_PID=$!
