@@ -50,6 +50,16 @@ else
     rm -f "${f}.bak"
   done
   echo "✅  Vault project created: $VAULT_PROJECT"
+
+  # Copy dashboard template and run initial sync
+  DASHBOARD_TEMPLATE="$SCRIPT_DIR/../templates/vault/Dashboard/dashboard-template.html"
+  DASHBOARD_FILE="$VAULT_PROJECT/$PROJECT Dashboard.html"
+  if [ -f "$DASHBOARD_TEMPLATE" ]; then
+    cp "$DASHBOARD_TEMPLATE" "$DASHBOARD_FILE"
+    python3 "$SCRIPT_DIR/sync-dashboard.py" "$VAULT_PROJECT" --quiet 2>/dev/null \
+      && echo "✅  Dashboard created: $PROJECT Dashboard.html" \
+      || echo "⚠️  Dashboard created (sync skipped — run open-dashboard to activate)"
+  fi
 fi
 
 # 2. Create repo if it doesn't exist

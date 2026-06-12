@@ -288,6 +288,16 @@
 
   var ol=el('ol');(D.protocol||[]).forEach(function(p){ol.appendChild(el('li',null,p));});$('protocol').appendChild(ol);
 })();
+
+// Heartbeat: keeps open-dashboard alive while this tab is open.
+// Port is passed as ?ping=PORT in the URL — only active when launched via open-dashboard.
+(function(){
+  var pp = new URLSearchParams(location.search).get('ping');
+  if (!pp) return;
+  function beat(){ fetch('http://localhost:'+pp+'/ping',{mode:'no-cors'}).catch(function(){}); }
+  beat();
+  setInterval(beat, 3000);
+})();
 </script>
 </body>
 </html>

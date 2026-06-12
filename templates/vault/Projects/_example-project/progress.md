@@ -1,22 +1,12 @@
 # Progress — PROJECT_NAME
 
-Live log. AI agents can read and append to this.
-Vault tasks and decisions are the considered record — this is the working surface.
-
----
-
-## Active
-
-- **Working on:**
-- **Blocked by:** —
-- **Next up:**
+Session log. Syncs to the project dashboard.
+Format: ### YYYY-MM-DD — Session title, then bullet points for what was done.
 
 ---
 
 ## Log
 
-<!-- Most recent at top -->
-
-### YYYY-MM-DD
-- 
-
+### YYYY-MM-DD — First session
+- Set up the project
+- Defined initial scope
