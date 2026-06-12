@@ -76,8 +76,11 @@ BS_PID=$!
 
 sleep 1  # let browser-sync bind
 
+# URL-encode the filename (spaces → %20) for the browser
+HTML_URL_NAME="${HTML_NAME// /%20}"
+
 # Open browser
-open "http://localhost:$BS_PORT/$HTML_NAME?ping=$PING_PORT"
+open "http://localhost:$BS_PORT/$HTML_URL_NAME?ping=$PING_PORT"
 
 # Watch markdown files → re-sync on change
 fswatch -o "$VAULT_PROJECT" | while read -r; do
@@ -85,7 +88,7 @@ fswatch -o "$VAULT_PROJECT" | while read -r; do
 done &
 FSWATCH_PID=$!
 
-echo "📊  Dashboard: http://localhost:$BS_PORT/$HTML_NAME"
+echo "📊  Dashboard: http://localhost:$BS_PORT/$HTML_URL_NAME"
 echo "   Edit docs/ markdown — dashboard updates automatically."
 echo "   Close the browser tab to stop (15 s grace period)."
 echo ""
