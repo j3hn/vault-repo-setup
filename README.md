@@ -139,16 +139,13 @@ When starting a session in a repo, point your agent to:
 - `docs/progress.md` — running log of what's been done
 - `docs/tasks.md` — what's open
 
-You can tell Claude Code to always load these by adding a `.claude/settings.json`:
+You can tell Claude Code to always load these by adding a `CLAUDE.md` at the repo root:
 
-```json
-{
-  "context_files": [
-    "CONTEXT.md",
-    "docs/progress.md",
-    "docs/tasks.md"
-  ]
-}
+```markdown
+Read these files at the start of every session:
+- CONTEXT.md — project brief and current sprint
+- docs/progress.md — running log of what's been done
+- docs/tasks.md — open tasks
 ```
 
 ---
