@@ -84,6 +84,9 @@
   .b-active{background:#16323f;color:#7fd6ef;border:1px solid #25515f}
   .b-closed{background:#1c3326;color:#86d6a6;border:1px solid #2d553c}
   .b-archived{background:#23262b;color:#9aa6b2;border:1px solid #333b44}
+  .session-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+  .smeta{font-size:11px;padding:2px 8px;border-radius:6px;background:var(--panel2);color:var(--faint);border:1px solid var(--line)}
+  .smeta-tool{color:var(--muted)}.smeta-effort-high{color:#f0c46e}.smeta-effort-max{color:#f0a59e}
   .docs{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
   .doc{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:11px 13px}
   .doc .dl{font-weight:600}.doc .dn{color:var(--muted);font-size:12px;margin-top:2px}
@@ -281,6 +284,13 @@
     var c=el('div','session');var top=el('div','top');
     var left=el('div');left.appendChild(el('span','st',s.title));left.appendChild(el('span','when','  '+s.date));top.appendChild(left);
     top.appendChild(el('span','badge b-'+s.status,s.status));c.appendChild(top);
+    if(s.tool||s.model||s.effort){
+      var meta=el('div','session-meta');
+      if(s.tool)  meta.appendChild(el('span','smeta smeta-tool',s.tool));
+      if(s.model) meta.appendChild(el('span','smeta',s.model));
+      if(s.effort)meta.appendChild(el('span','smeta smeta-effort-'+(s.effort||''),'effort: '+s.effort));
+      c.appendChild(meta);
+    }
     if(s.summary)c.appendChild(el('div','sm',s.summary));
     if(s.produced&&s.produced.length){var ul=el('ul');s.produced.forEach(function(p){ul.appendChild(el('li',null,p));});c.appendChild(ul);}
     $('sessions').appendChild(c);

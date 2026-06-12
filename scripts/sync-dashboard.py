@@ -115,18 +115,30 @@ def parse_sessions(text):
         re.DOTALL)
     today = str(_date.today())
     for i, m in enumerate(pat.finditer(text)):
-        dt, title, body = m.group(1), (m.group(2) or '').strip(), m.group(3)
+        dt, title_raw, body = m.group(1), (m.group(2) or '').strip(), m.group(3)
+        # Extract optional @tool, @model:x, @effort:x tags from title
+        mm = re.search(r'@model:([\w.-]+)', title_raw)
+        em = re.search(r'@effort:([\w]+)', title_raw)
+        tm = re.search(r'@(?!model:|effort:)([\w-]+)', title_raw)
+        model  = mm.group(1) if mm else None
+        effort = em.group(1) if em else None
+        tool   = tm.group(1).replace('-', ' ').title() if tm else None
+        title  = re.sub(r'\s*@[\w:.-]+', '', title_raw).strip() or f'Session {dt}'
         produced = [l[2:].strip() for l in body.split('\n') if l.strip().startswith('- ')]
         summary  = ' '.join(l.strip() for l in body.split('\n')
                             if l.strip() and not l.strip().startswith('- ')).strip()
-        sessions.append({
+        entry = {
             'id':       f's{i+1}',
             'date':     dt,
-            'title':    title or f'Session {dt}',
+            'title':    title,
             'status':   'active' if dt == today else 'closed',
             'summary':  summary,
             'produced': produced,
-        })
+        }
+        if tool:   entry['tool']   = tool
+        if model:  entry['model']  = model
+        if effort: entry['effort'] = effort
+        sessions.append(entry)
     sessions.sort(key=lambda x: x['date'], reverse=True)
     return sessions
 
