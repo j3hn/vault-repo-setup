@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+  PROJECT DASHBOARD TEMPLATE  —  see Dashboard/DASHBOARD.md for the full spec.
+  To use: copy this file into a project as "<Project> Dashboard.html", then edit
+  ONLY the JSON in the <script id="dash-data"> block near the bottom.
+  Self-contained: no server, no build step. Open it straight from disk.
+-->
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard</title>
+<style>
+  :root{
+    --bg:#0f1419; --panel:#161d26; --panel2:#1c2632; --line:#27323f;
+    --ink:#e7edf3; --muted:#93a1b0; --faint:#6b7886;
+    --todo:#e0a32e; --doing:#3b9ae1; --done:#3fb27f; --blocked:#7a8794; --crit:#e5564b;
+    --accent:#5b8def;
+    --radius:12px; --shadow:0 1px 0 rgba(255,255,255,.03),0 8px 24px rgba(0,0,0,.25);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:linear-gradient(180deg,#0c1116,#0f1419 240px);color:var(--ink);
+    font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;padding-bottom:60px}
+  a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+  header.top{padding:26px 0 14px}
+  h1{margin:0;font-size:22px;letter-spacing:.2px}
+  .sub{color:var(--muted);margin-top:4px;font-size:13px}
+  .updated{color:var(--faint);font-size:12px;margin-top:6px}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--muted)}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+  .d-todo{background:var(--todo)}.d-doing{background:var(--doing)}.d-done{background:var(--done)}
+  .d-blocked{background:var(--blocked)}.d-crit{background:var(--crit)}
+  .chips{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 6px}
+  .chip{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:8px 14px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow)}
+  .chip .lbl{font-size:12px;color:var(--muted)} .chip .date{font-weight:600}
+  .chip .rem{font-size:12px;padding:2px 8px;border-radius:999px;background:var(--panel2);color:var(--muted)}
+  .chip.crit{border-color:#5a2b29}.chip.crit .rem{background:#3a1d1b;color:#f0a59e}
+  .chip.warn .rem{background:#3a3115;color:#f0d28a}
+  section{margin-top:26px}
+  .h{display:flex;align-items:baseline;justify-content:space-between;margin:0 0 12px}
+  .h h2{font-size:13px;text-transform:uppercase;letter-spacing:1.4px;color:var(--muted);margin:0}
+  .h .meta{font-size:12px;color:var(--faint)}
+  .grid{display:grid;gap:14px}
+  .streams{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+  .card .ribbon{height:3px;border-radius:3px;margin:-16px -16px 14px;border-top-left-radius:var(--radius);border-top-right-radius:var(--radius)}
+  .stream-name{font-weight:700;font-size:15px}
+  .pill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;text-transform:uppercase;letter-spacing:.4px;color:#0b0f14}
+  .stream-status{margin:10px 0 8px}
+  .stream-summary{color:var(--muted);font-size:13px}
+  .stream-next{margin-top:12px;font-size:13px;border-top:1px dashed var(--line);padding-top:10px}
+  .stream-next b{color:var(--ink)}
+  .reference{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+  .fact{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:11px 13px}
+  .fact .k{font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.6px}
+  .fact .v{font-size:14px;margin-top:3px}
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .fbtn{background:var(--panel);border:1px solid var(--line);color:var(--muted);padding:6px 12px;border-radius:999px;cursor:pointer;font-size:12px;font-weight:600}
+  .fbtn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+  .fbtn .ct{opacity:.7;margin-left:5px}
+  .task{display:flex;gap:12px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:8px}
+  .task .s{margin-top:4px;flex:0 0 auto} .task .body{flex:1 1 auto;min-width:0}
+  .task .title{font-weight:600}
+  .task.done .title{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--faint)}
+  .task .note{color:var(--muted);font-size:12.5px;margin-top:3px}
+  .task .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+  .tag{font-size:11px;padding:2px 8px;border-radius:6px;background:var(--panel2);color:var(--muted);border:1px solid var(--line)}
+  .tag.stream{font-weight:600}.tag.due{color:#f0d28a}.tag.crit{color:#f0a59e;border-color:#5a2b29}.tag.pri-high{color:#f0c46e}
+  .timeline{position:relative;margin-left:6px;padding-left:20px;border-left:2px solid var(--line)}
+  .ev{position:relative;margin-bottom:16px}
+  .ev::before{content:"";position:absolute;left:-27px;top:3px;width:11px;height:11px;border-radius:50%;background:var(--panel);border:2px solid var(--accent)}
+  .ev .date{font-size:12px;color:var(--faint)} .ev .et{font-weight:600;margin-top:1px}
+  .ev .ed{color:var(--muted);font-size:13px;margin-top:2px}
+  .ev .ef{font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
+  .session{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:10px}
+  .session .top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .session .st{font-weight:700}.session .when{font-size:12px;color:var(--faint)}
+  .session .sm{color:var(--muted);font-size:13px;margin-top:6px}
+  .session ul{margin:8px 0 0;padding-left:18px;color:var(--muted);font-size:12.5px}
+  .badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;text-transform:uppercase;letter-spacing:.4px}
+  .b-active{background:#16323f;color:#7fd6ef;border:1px solid #25515f}
+  .b-closed{background:#1c3326;color:#86d6a6;border:1px solid #2d553c}
+  .b-archived{background:#23262b;color:#9aa6b2;border:1px solid #333b44}
+  .docs{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+  .doc{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:11px 13px}
+  .doc .dl{font-weight:600}.doc .dn{color:var(--muted);font-size:12px;margin-top:2px}
+  details.proto{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:0 16px}
+  details.proto summary{cursor:pointer;padding:14px 0;font-weight:600;list-style:none}
+  details.proto summary::-webkit-details-marker{display:none}
+  details.proto summary::before{content:"\25B8";margin-right:8px;color:var(--muted)}
+  details.proto[open] summary::before{content:"\25BE"}
+  details.proto .pc{padding:0 0 16px;color:var(--muted);font-size:13px}
+  details.proto code{background:var(--panel2);padding:1px 6px;border-radius:5px;color:#cfe0ee;font-size:12px}
+  details.proto ol{padding-left:20px}
+  .empty{color:var(--faint);font-size:13px}
+  footer{color:var(--faint);font-size:12px;text-align:center;margin-top:36px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1 id="title">Dashboard</h1>
+    <div class="sub" id="subtitle"></div>
+    <div class="updated" id="updated"></div>
+    <div class="legend">
+      <span><i class="dot d-todo"></i>To do</span>
+      <span><i class="dot d-doing"></i>In progress</span>
+      <span><i class="dot d-done"></i>Done</span>
+      <span><i class="dot d-blocked"></i>Blocked</span>
+      <span><i class="dot d-crit"></i>Critical deadline</span>
+    </div>
+  </header>
+  <div class="chips" id="deadlines"></div>
+  <section id="sec-streams"><div class="h"><h2>Workstreams</h2></div><div class="grid streams" id="streams"></div></section>
+  <section id="sec-reference"><div class="h"><h2>Quick reference</h2></div><div class="grid reference" id="reference"></div></section>
+  <section><div class="h"><h2>Tasks</h2><span class="meta" id="taskcount"></span></div>
+    <div class="filters" id="statusFilters"></div><div class="filters" id="streamFilters"></div><div id="tasks"></div></section>
+  <section id="sec-log"><div class="h"><h2>Activity &amp; decisions log</h2><span class="meta">most recent first</span></div><div class="timeline" id="log"></div></section>
+  <section id="sec-sessions"><div class="h"><h2>Sessions</h2><span class="meta">active &middot; closed &middot; archived</span></div><div id="sessions"></div></section>
+  <section id="sec-docs"><div class="h"><h2>Key documents</h2></div><div class="grid docs" id="documents"></div></section>
+  <section><details class="proto"><summary>How this dashboard is maintained (session protocol)</summary><div class="pc" id="protocol"></div></details></section>
+  <footer>Self-contained file &middot; edit the <code>dash-data</code> JSON block to update &middot; <span id="foot"></span></footer>
+</div>
+
+<script type="application/json" id="dash-data">
+{
+  "meta": {
+    "title": "Example Project Dashboard",
+    "subtitle": "One-line description of the project or matter",
+    "updated": "2026-01-01",
+    "today_note": "Day counters compute from your computer's clock against the absolute dates shown."
+  },
+  "deadlines": [
+    {"date":"2026-02-01","label":"First milestone","severity":"warn"},
+    {"date":"2026-03-15","label":"Hard deadline","severity":"crit"}
+  ],
+  "streams": [
+    {"id":"build","name":"Build","color":"#4cc9f0","status":"In progress","statusColor":"#3b9ae1",
+     "summary":"What this workstream covers and where it currently stands.","next":"The single next action for this stream."},
+    {"id":"launch","name":"Launch","color":"#80ed99","status":"Not started","statusColor":"#e0a32e",
+     "summary":"A second parallel workstream.","next":"What unblocks it."}
+  ],
+  "reference": [
+    {"k":"Owner","v":"Name"},
+    {"k":"Repo / location","v":"path or url"},
+    {"k":"Key contact","v":"email or phone"}
+  ],
+  "tasks": [
+    {"id":"t1","title":"An outstanding task","status":"todo","stream":"build","priority":"high","due":"2026-02-01","note":"Optional detail. priority: critical | high | med | low."},
+    {"id":"t2","title":"A task in progress","status":"doing","stream":"build","priority":"med"},
+    {"id":"t3","title":"A task waiting on something","status":"blocked","stream":"launch","priority":"med","note":"What it is blocked on."},
+    {"id":"t4","title":"A finished task","status":"done","stream":"build"}
+  ],
+  "decisions": [
+    {"date":"2026-01-01","stream":"build","title":"A decision or activity","detail":"What was decided or done, and why."}
+  ],
+  "sessions": [
+    {"id":"s1","date":"2026-01-01","title":"First working session","status":"active",
+     "summary":"What this session is doing.","produced":["A file or output"]}
+  ],
+  "documents": [
+    {"label":"Key document","path":"relative/path/to/file.md","note":"Why it matters."}
+  ],
+  "protocol": [
+    "This file is the single overview of the project. The data lives in the <code>dash-data</code> JSON block inside this HTML; editing that block updates the dashboard. No build step, no server.",
+    "At the START of a session: read the dashboard and add a <code>sessions</code> entry with <code>status: active</code> (only one active at a time).",
+    "DURING: log decisions/activity to <code>decisions</code> (newest first); move <code>tasks</code> through <code>todo</code> &rarr; <code>doing</code> &rarr; <code>done</code> (or <code>blocked</code>).",
+    "At the END: set the session <code>status</code> to <code>closed</code>, fill <code>produced</code>, bump <code>meta.updated</code>, refresh <code>deadlines</code>.",
+    "Keep the JSON valid (double quotes, no trailing commas) or the dashboard renders blank.",
+    "Any section with no data hides itself automatically."
+  ]
+}
+</script>
+
+<script>
+(function(){
+  var raw = document.getElementById('dash-data').textContent, D;
+  try { D = JSON.parse(raw); } catch(e){
+    document.body.insertAdjacentHTML('afterbegin','<div style="background:#3a1d1b;color:#f0a59e;padding:14px;text-align:center">Dashboard data is not valid JSON: '+e.message+'</div>');
+    return;
+  }
+  var $=function(id){return document.getElementById(id);};
+  var el=function(t,c,h){var e=document.createElement(t); if(c)e.className=c; if(h!=null)e.innerHTML=h; return e;};
+  var enc=function(p){return /^[a-z]+:\/\//i.test(p)?p:p.split('/').map(encodeURIComponent).join('/');};
+  function fmt(s){return new Date(s+'T00:00:00').toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'});}
+  function daysUntil(s){var d=new Date(s+'T00:00:00'),n=new Date();n.setHours(0,0,0,0);return Math.round((d-n)/86400000);}
+  function rem(s){var n=daysUntil(s);return n<0?'passed':n===0?'today':n===1?'in 1 day':'in '+n+' days';}
+  function hide(id){var e=$(id); if(e) e.style.display='none';}
+
+  // streams may be called "streams" (canonical) or "fronts" (legacy); reference or facts; decisions or log.
+  var streams = D.streams || D.fronts || [];
+  var reference = D.reference || D.facts || [];
+  var logArr = D.decisions || D.log || [];
+  var meta = D.meta||{};
+
+  document.title = meta.title || 'Dashboard';
+  $('title').textContent = meta.title || 'Dashboard';
+  $('subtitle').textContent = meta.subtitle || '';
+  $('updated').textContent = (meta.updated?'Last updated '+fmt(meta.updated):'') + (meta.today_note?'  ·  '+meta.today_note:'');
+  $('foot').textContent = meta.updated ? 'Generated '+fmt(meta.updated) : '';
+
+  var DL=(D.deadlines||[]).slice().sort(function(a,b){return new Date(a.date)-new Date(b.date);});
+  if(!DL.length) hide('deadlines');
+  DL.forEach(function(x){
+    var c=el('div','chip'+(x.severity==='crit'?' crit':x.severity==='warn'?' warn':''));
+    c.appendChild(el('span','lbl',x.label)); c.appendChild(el('span','date',fmt(x.date))); c.appendChild(el('span','rem',rem(x.date)));
+    $('deadlines').appendChild(c);
+  });
+
+  var streamName={},streamColor={};
+  if(!streams.length) hide('sec-streams');
+  streams.forEach(function(f){
+    streamName[f.id]=f.name; streamColor[f.id]=f.color||'#5b8def';
+    var c=el('div','card'); var r=el('div','ribbon'); r.style.background=f.color||'#5b8def'; c.appendChild(r);
+    c.appendChild(el('div','stream-name',f.name));
+    if(f.status){var st=el('div','stream-status');var p=el('span','pill',f.status);p.style.background=f.statusColor||'#5b8def';st.appendChild(p);c.appendChild(st);}
+    if(f.summary) c.appendChild(el('div','stream-summary',f.summary));
+    if(f.next) c.appendChild(el('div','stream-next','<b>Next:</b> '+f.next));
+    $('streams').appendChild(c);
+  });
+
+  if(!reference.length) hide('sec-reference');
+  reference.forEach(function(f){var c=el('div','fact');c.appendChild(el('div','k',f.k));c.appendChild(el('div','v',f.v));$('reference').appendChild(c);});
+
+  var tasks=D.tasks||[]; var statusOrder={critical:0,high:1,med:2,low:3}; var stt={status:'open',stream:'all'};
+  function vis(t){
+    var s=stt.status==='all'?true:stt.status==='open'?(t.status==='todo'||t.status==='doing'||t.status==='blocked'):t.status===stt.status;
+    return s && (stt.stream==='all'||t.stream===stt.stream);
+  }
+  function renderTasks(){
+    var host=$('tasks');host.innerHTML='';
+    var list=tasks.filter(vis).sort(function(a,b){var sa=a.status==='done'?1:0,sb=b.status==='done'?1:0;return sa!==sb?sa-sb:(statusOrder[a.priority]||9)-(statusOrder[b.priority]||9);});
+    if(!list.length){host.appendChild(el('div','empty','Nothing here.'));return;}
+    list.forEach(function(t){
+      var row=el('div','task'+(t.status==='done'?' done':''));
+      var dc=t.status==='done'?'d-done':t.status==='doing'?'d-doing':t.status==='blocked'?'d-blocked':'d-todo';
+      var s=el('div','s');s.appendChild(el('i','dot '+dc));row.appendChild(s);
+      var b=el('div','body');b.appendChild(el('div','title',t.title));if(t.note)b.appendChild(el('div','note',t.note));
+      var tg=el('div','tags');
+      if(t.stream){var ft=el('span','tag stream',streamName[t.stream]||t.stream);ft.style.color=streamColor[t.stream]||'#93a1b0';tg.appendChild(ft);}
+      if(t.priority&&t.priority!=='low'&&t.status!=='done')tg.appendChild(el('span','tag pri-'+((t.priority==='high'||t.priority==='critical')?'high':''),t.priority.toUpperCase()));
+      if(t.due)tg.appendChild(el('span','tag due'+(daysUntil(t.due)<=5?' crit':''),'due '+fmt(t.due)+' · '+rem(t.due)));
+      if(t.status==='blocked')tg.appendChild(el('span','tag','BLOCKED'));
+      b.appendChild(tg);row.appendChild(b);host.appendChild(row);
+    });
+  }
+  var cnt={open:0,todo:0,doing:0,done:0,blocked:0,all:tasks.length};
+  tasks.forEach(function(t){cnt[t.status]=(cnt[t.status]||0)+1;if(t.status!=='done')cnt.open++;});
+  $('taskcount').textContent=cnt.open+' open · '+cnt.done+' done';
+  [['open','Open',cnt.open],['todo','To do',cnt.todo],['doing','In progress',cnt.doing],['blocked','Blocked',cnt.blocked],['done','Done',cnt.done],['all','All',cnt.all]].forEach(function(o){
+    var btn=el('button','fbtn'+(o[0]===stt.status?' active':''),o[1]+'<span class="ct">'+o[2]+'</span>');
+    btn.onclick=function(){stt.status=o[0];[].forEach.call($('statusFilters').children,function(x){x.classList.remove('active');});btn.classList.add('active');renderTasks();};
+    $('statusFilters').appendChild(btn);
+  });
+  [['all','All streams']].concat(streams.map(function(f){return [f.id,f.name];})).forEach(function(o){
+    var btn=el('button','fbtn'+(o[0]===stt.stream?' active':''),o[1]);
+    btn.onclick=function(){stt.stream=o[0];[].forEach.call($('streamFilters').children,function(x){x.classList.remove('active');});btn.classList.add('active');renderTasks();};
+    $('streamFilters').appendChild(btn);
+  });
+  if(!streams.length) hide('streamFilters');
+  renderTasks();
+
+  if(!logArr.length) hide('sec-log');
+  logArr.slice().sort(function(a,b){return new Date(b.date)-new Date(a.date);}).forEach(function(e){
+    var ev=el('div','ev');ev.appendChild(el('div','date',fmt(e.date)));ev.appendChild(el('div','et',e.title));
+    if(e.detail)ev.appendChild(el('div','ed',e.detail));if(e.stream)ev.appendChild(el('div','ef',streamName[e.stream]||e.stream));
+    $('log').appendChild(ev);
+  });
+
+  var sess=D.sessions||[]; if(!sess.length) hide('sec-sessions');
+  sess.forEach(function(s){
+    var c=el('div','session');var top=el('div','top');
+    var left=el('div');left.appendChild(el('span','st',s.title));left.appendChild(el('span','when','  '+s.date));top.appendChild(left);
+    top.appendChild(el('span','badge b-'+s.status,s.status));c.appendChild(top);
+    if(s.summary)c.appendChild(el('div','sm',s.summary));
+    if(s.produced&&s.produced.length){var ul=el('ul');s.produced.forEach(function(p){ul.appendChild(el('li',null,p));});c.appendChild(ul);}
+    $('sessions').appendChild(c);
+  });
+
+  var docs=D.documents||[]; if(!docs.length) hide('sec-docs');
+  docs.forEach(function(d){
+    var c=el('div','doc');var w=el('div');var a=el('a',null,d.label);a.href=enc(d.path);a.className='dl';w.appendChild(a);c.appendChild(w);
+    if(d.note)c.appendChild(el('div','dn',d.note));$('documents').appendChild(c);
+  });
+
+  var ol=el('ol');(D.protocol||[]).forEach(function(p){ol.appendChild(el('li',null,p));});$('protocol').appendChild(ol);
+})();
+</script>
+</body>
+</html>

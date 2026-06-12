@@ -1,5 +1,7 @@
 # Vault ↔ Repo Setup
 
+Two shell scripts that wire a new project together in one command: a git repo in your dev folder, a matching notes folder in your Obsidian vault, and a `docs/` symlink that connects them. The same files are visible in Obsidian and your editor with no syncing or duplication. A `CONTEXT.md` brief lands at the repo root so an AI agent (Claude Code, Cursor, etc.) can pick up the project immediately.
+
 One-time setup to link your Obsidian vault and Dev repos so they share the same project notes — no syncing, no duplication.
 
 ---
@@ -112,7 +114,9 @@ Copy the contents of `templates/vault/` into your Obsidian vault root:
 
 ```
 templates/vault/
-├── Home.md                          → vault root
+├── Dashboard/
+│   ├── DASHBOARD.md                 → spec + schema for the dashboard format
+│   └── dashboard-template.html     → copy into any project to create a dashboard
 └── Projects/_example-project/      → use as a reference
         _index.md
         tasks.md
@@ -120,6 +124,8 @@ templates/vault/
         progress.md
         research.md
 ```
+
+**Dashboard** is a self-contained HTML file — no server, no build step, no plugins. Copy `dashboard-template.html` into a project folder, rename it `<Project> Dashboard.html`, and edit the JSON block inside to populate it. See `DASHBOARD.md` for the full schema and session protocol.
 
 **Rename `_example-project`** to your first real project name, then duplicate the folder for each new project (or use the scripts above to do it automatically).
 
